@@ -70,7 +70,11 @@ module RubyLiveReload
         send_file path
       end
 
-      response = if File.file? File.join(path, "index.html")
+      response = if File.file? path
+        content_type :html
+
+        File.read path
+      elsif File.file? File.join(path, "index.html")
         content_type :html
 
         File.read File.join(path, "index.html")
