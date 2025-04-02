@@ -59,10 +59,14 @@ module RubyLiveReload
     end
 
     get '*' do
-      path = File.join(Dir.pwd, params['splat'])
-      is_asset = !(["html", "htm", "xhtml"].include? File.extname(path))
+      splat = File.join params['splat']
+      path = File.join(Dir.pwd, splat)
+      is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
 
-      if File.file?(path) && is_asset
+      if File.directory?(path) && !path.end_with?("/")
+        # Add / to the end of URL so browser correctly handles relative paths
+        redirect "#{splat}/"
+      elsif File.file?(path) && is_asset
         send_file path
       end
 
@@ -70,7 +74,7 @@ module RubyLiveReload
         content_type :html
 
         File.read File.join(path, "index.html")
-      else 
+      elsif File.directory? path
         children = Dir.glob("*", base: path).sort_by { |s| [File.directory?(s).to_s, s.downcase] }
         links = children.map do |child| 
           <<-LI
@@ -101,6 +105,12 @@ module RubyLiveReload
           </body>
           </html>
         LISTING
+      else
+        halt 404, <<-NOT_FOUND
+          <h1>File Not Found</h1>
+
+          <p>#{path}</p>
+        NOT_FOUND
       end
       
       client_js = <<-JS
