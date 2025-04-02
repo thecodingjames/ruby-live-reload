@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
 
   s.executables = ["ruby-live-reload", "rlr"]
 
+  s.add_runtime_dependency "rake", "~> 13.2.0"
   s.add_runtime_dependency "sinatra", "~> 4.1.0"
   s.add_runtime_dependency "puma", "~> 6.5.0"
   s.add_runtime_dependency "rackup", "~> 2.2.0"
