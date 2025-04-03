@@ -1,6 +1,6 @@
-require 'optparse'
-require 'sinatra/base'
-require 'filewatcher'
+require "optparse"
+require "sinatra/base"
+require "filewatcher"
 
 # https://github.com/sinatra/sinatra/blob/main/examples/chat.rb
 # https://blog.appsignal.com/2024/11/27/server-sent-events-and-websockets-in-rack-for-ruby.html
@@ -10,7 +10,7 @@ module RubyLiveReload
 
   Options = Struct.new(:host, :port, keyword_init: true)
 
-  $args = Options.new(host: '127.0.0.1', port: 8080)
+  $args = Options.new(host: "127.0.0.1", port: 8080)
 
   OptionParser.new do |opts|
     opts.banner = "Usage: bsync.rb [options]"
@@ -43,7 +43,7 @@ module RubyLiveReload
       end
     end
 
-    get '/ruby-live-reload-sse', provides: 'text/event-stream' do
+    get "/ruby-live-reload-sse", provides: "text/event-stream" do
       stream :keep_open do |client|
         if settings.clients.add? client
           client.callback do
@@ -56,10 +56,23 @@ module RubyLiveReload
         settings.clients.delete client
         client.close
       end
+
+      200
     end
 
-    get '*' do
-      splat = File.join params['splat']
+    # Tweak to remove 404 if favicon is missing
+    get "/favicon.ico" do
+      path = File.join(Dir.pwd, "favicon.ico")
+
+      if File.exists? path
+        send_file path
+      end
+
+      204
+    end
+
+    get "*" do
+      splat = File.join params["splat"]
       path = File.join(Dir.pwd, splat)
       is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
 
@@ -83,8 +96,8 @@ module RubyLiveReload
         links = children.map do |child| 
           <<-LI
             <li>
-              <a href='#{child}'>
-                #{child + (File.directory?(child) ? '/' : '')}
+              <a href="#{child}">
+                #{child + (File.directory?(child) ? "/" : "")}
               </a>
             </li>
           LI
@@ -119,17 +132,17 @@ module RubyLiveReload
       
       client_js = <<-JS
         <script>
-          const source = new EventSource("/ruby-live-reload-sse")
+            const source = new EventSource("/ruby-live-reload-sse")
 
-          source.onmessage = (m) => {
-            location.reload()
-          }
+            source.onmessage = (m) => {
+              location.reload()
+            }
 
-          source.onerror = (m) => {
-            console.group('Ruby Live Reload')
-              console.error(m)
-            console.groupEnd()
-          }
+            source.onerror = (m) => {
+              console.group('Ruby Live Reload')
+                console.error(m)
+              console.groupEnd()
+            }
         </script>
       JS
 
