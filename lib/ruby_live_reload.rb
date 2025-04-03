@@ -143,6 +143,12 @@ module RubyLiveReload
                 console.error(m)
               console.groupEnd()
             }
+
+            addEventListener("beforeunload", (event) => {
+              source.close()
+
+              return false // Do not show confirm dialog
+            });
         </script>
       JS
 
