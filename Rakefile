@@ -1,9 +1,16 @@
+# Use same context as gemspec
+$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
+
+# Call a task with the standard CLI args
+# Ex: rake run -- -p 9090 -h 0.0.0.0
+ARGV.slice!(0, 2)
+
 task :run do
-  ruby "lib/ruby_live_reload.rb"
+  require "ruby_live_reload"
 end
 
 task :rlr do
-  sh "bin/rlr"
+  load File.expand_path("../bin/rlr", __FILE__)
 end
 
 task :install do

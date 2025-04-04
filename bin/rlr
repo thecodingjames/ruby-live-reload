@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
 # Alias for bin/ruby-live-reload
-exec "ruby-live-reload"
+load File.expand_path("../ruby-live-reload", __FILE__)
