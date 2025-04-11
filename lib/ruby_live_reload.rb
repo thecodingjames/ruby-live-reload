@@ -98,6 +98,11 @@ module RubyLiveReload
     end
 
     get "*" do
+      headers \
+        "Cache-Control" => "max-age=0, no-cache, no-store, must-revalidate",
+        "Expires"=> "Thu, 01 Jan 1970 00:00:00 GMT",
+        "Pragma" => "no-cache"
+
       splat = File.join params["splat"]
       path = File.join($args.directory, splat)
       is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
@@ -115,12 +120,8 @@ module RubyLiveReload
         #      What about arbitrary files? Images, CSS, etc?
         Faraday.get(File.join($args.proxy + splat)).body
       elsif File.file? path
-        content_type :html
-
         File.read path
       elsif File.file? File.join(path, "index.html")
-        content_type :html
-
         File.read File.join(path, "index.html")
       elsif File.directory?(path) && !response
         children = Dir.glob("*", base: path).sort_by { |s| [File.directory?(s).to_s, s.downcase] }
@@ -133,8 +134,6 @@ module RubyLiveReload
             </li>
           LI
         end.join
-
-        content_type :html
 
         <<-LISTING
           <!DOCTYPE html>
@@ -154,10 +153,21 @@ module RubyLiveReload
           </html>
         LISTING
       elsif !response
-        halt 404, <<-NOT_FOUND
-          <h1>File Not Found</h1>
+        status 404
 
-          <p>#{path}</p>
+        <<-NOT_FOUND
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title></title>
+          </head>
+          <body>
+            <h1>File Not Found</h1>
+
+            <p>#{path}</p>
+          </body>
+          </html>
         NOT_FOUND
       end
 
@@ -183,7 +193,11 @@ module RubyLiveReload
         </script>
       JS
 
-      response.sub /<body>/, "<body>#{client_js}"
+      if response.sub!(/<body>/, "<body>#{client_js}")
+        content_type :html
+      end
+
+      response
     end
 
     run!
