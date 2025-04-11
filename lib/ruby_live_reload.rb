@@ -3,6 +3,8 @@ require "sinatra/base"
 require "filewatcher"
 require "faraday"
 
+require_relative "ruby_live_reload/version.rb"
+
 # https://blog.appsignal.com/2024/11/27/server-sent-events-and-websockets-in-rack-for-ruby.html
 
 module RubyLiveReload
@@ -30,6 +32,11 @@ module RubyLiveReload
       # TODO Validate path is a directory
 
       $args.directory = directory
+    end
+
+    opts.on("-v", "--version", "Version") do
+      puts RubyLiveReload::VERSION
+      exit
     end
   end.parse!
 
