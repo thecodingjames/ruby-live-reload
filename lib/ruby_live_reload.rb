@@ -45,7 +45,6 @@ module RubyLiveReload
       puts "===== Started watching file changes ====="
 
       @filewatcher_thread = Thread.new do
-        p $args.directory
         @filewatcher = Filewatcher.new File.join($args.directory, "**", "*.*")
 
         @filewatcher.watch do |changes| 
