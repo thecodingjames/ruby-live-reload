@@ -4,41 +4,13 @@ require "filewatcher"
 require "faraday"
 
 require_relative "ruby_live_reload/version.rb"
+require_relative "ruby_live_reload/options.rb"
 
 # https://blog.appsignal.com/2024/11/27/server-sent-events-and-websockets-in-rack-for-ruby.html
 
 module RubyLiveReload
-  Options = Struct.new(:host, :port, :directory, :proxy, keyword_init: true)
 
-  $args = Options.new(host: "127.0.0.1", port: 8080, directory: Dir.pwd)
-
-  OptionParser.new do |opts|
-    opts.banner = "Usage: rlr [options]"
-
-    opts.on("-h HOST", "--host HOST", "Hostname") do |host|
-      $args.host = host
-    end
-
-    opts.on("-p PORT", "--port PORT", "Port") do |port|
-      $args.port = port
-    end
-
-    opts.on("--proxy URL", "Url of the proxied app") do |proxy|
-      $args.proxy = proxy
-    end
-
-    opts.on("-d PATH", "--directory PATH", "Path") do |path|
-      directory = File.join(Dir.pwd, path) unless path.start_with?("/")
-      # TODO Validate path is a directory
-
-      $args.directory = directory
-    end
-
-    opts.on("-v", "--version", "Version") do
-      puts RubyLiveReload::VERSION
-      exit
-    end
-  end.parse!
+  $args = Options.parse(ARGV)
 
   class Server < Sinatra::Base
 
