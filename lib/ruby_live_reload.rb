@@ -44,7 +44,7 @@ module RubyLiveReload
 
     set :bind, $args.host
     set :port, $args.port
-    set :server_settings, { max_threads: 64, quiet: true }
+    set :server_settings, { max_threads: 256, quiet: true }
 
     set :clients, Set.new
     
@@ -74,19 +74,22 @@ module RubyLiveReload
 
     on_stop do
       @filewatcher&.stop()
-      @filewatcher_thread.join
+      @filewatcher_thread&.join
     end
 
     get "/ruby-live-reload-sse", provides: "text/event-stream" do
       stream :keep_open do |client|
         if settings.clients.add? client
-          client.callback do
+          client.callback do # on connection closed
             settings.clients.delete client
           end
         end
 
         # Throttle Sinatra scheduler since Filewatcher is used to trigger SSE
-        sleep 5
+        sleep 1
+
+        # Heartbeat will detect disconnected client and free the thread
+        client << "event: heartbeat\n"
       rescue
         settings.clients.delete client
         client.close
