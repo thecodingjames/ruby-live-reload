@@ -3,18 +3,19 @@ module RubyLiveReload
 
     private
 
-    attr_writer :host, :port, :directory, :proxy
+    attr_writer :host, :port, :directory, :proxy, :message
 
     def initialize
       @host = "127.0.0.1"
       @port = 8080
       @directory = Dir.pwd
       @proxy = nil
+      @message = nil
     end
 
     public 
 
-    attr_reader :host, :port, :directory, :proxy
+    attr_reader :host, :port, :directory, :proxy, :message
 
     def self.parse(args)
 
@@ -30,8 +31,9 @@ module RubyLiveReload
 
       OptionParser.new do |options|
         options.banner = "Usage: rlr [instance]"
+        options.release = VERSION
 
-        options.on("-h HOST", "--host HOST", "Hostname") do |host|
+        options.on("-b HOST", "--bind HOST", "Hostname") do |host|
           instance.send :host=, host
         end
 
@@ -51,10 +53,10 @@ module RubyLiveReload
         end
 
         options.on("-v", "--version", "Version") do
-          puts RubyLiveReload::VERSION
-          exit
+          instance.send :message=, VERSION
         end
-      end.parse!(args)
+
+      end.parse(args)
 
       return instance
     end

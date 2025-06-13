@@ -10,12 +10,8 @@ require_relative "ruby_live_reload/options.rb"
 
 module RubyLiveReload
 
-  $args = Options.parse(ARGV)
-
   class Server < Sinatra::Base
 
-    set :bind, $args.host
-    set :port, $args.port
     set :server_settings, { max_threads: 256, quiet: true }
 
     set :clients, Set.new
@@ -24,7 +20,7 @@ module RubyLiveReload
       puts "===== Started watching file changes ====="
 
       @filewatcher_thread = Thread.new do
-        @filewatcher = Filewatcher.new File.join($args.directory, "**", "*.*")
+        @filewatcher = Filewatcher.new File.join(settings.directory, "**", "*.*")
 
         @filewatcher.watch do |changes| 
           settings.clients.each do |client|
@@ -70,7 +66,7 @@ module RubyLiveReload
 
     # Tweak to remove 404 if favicon is missing
     get "/favicon.ico" do
-      path = File.join($args.directory, "favicon.ico")
+      path = File.join(settings.directory, "favicon.ico")
 
       if File.exists? path
         send_file path
@@ -86,7 +82,7 @@ module RubyLiveReload
         "Pragma" => "no-cache"
 
       splat = File.join params["splat"]
-      path = File.join($args.directory, splat)
+      path = File.join(settings.directory, splat)
       is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
 
       if File.directory?(path) && !path.end_with?("/")
@@ -96,11 +92,11 @@ module RubyLiveReload
         send_file path
       end
 
-      response = if $args.proxy
+      response = if settings.proxy
         # TODO Handle response other than HTML
         #      --wrap to enclose arbitrary text within HTML to allow snippet injection?
         #      What about arbitrary files? Images, CSS, etc?
-        Faraday.get(File.join($args.proxy + splat)).body
+        Faraday.get(File.join(settings.proxy + splat)).body
       elsif File.file? path
         File.read path
       elsif File.file? File.join(path, "index.html")
@@ -182,7 +178,20 @@ module RubyLiveReload
       response
     end
 
-    run!
+  end
+
+
+  options = Options.parse(ARGV)
+
+  if message = options.message
+    puts message
+  else 
+    Server.run!({
+      bind: options.host,
+      port: options.port,
+      directory: options.directory,
+      proxy: options.proxy
+    })
   end
 
 end

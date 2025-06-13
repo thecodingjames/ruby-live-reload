@@ -1,10 +1,9 @@
 class OptionsTest < Minitest::Test
 
   def test_version
-    assert_output "#{VERSION}\n" do
-      p "crashing test"
-      # Options.parse "-v"
-    end
+    options = Options.parse "-v"
+
+    assert_equal options.message, VERSION
   end
 
 end
