@@ -68,7 +68,7 @@ module RubyLiveReload
     get "/favicon.ico" do
       path = File.join(settings.directory, "favicon.ico")
 
-      if File.exists? path
+      if File.exist? path
         send_file path
       end
 
