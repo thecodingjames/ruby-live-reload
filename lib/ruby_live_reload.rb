@@ -18,7 +18,15 @@ module RubyLiveReload
     set :clients, Set.new
     
     on_start do
-      puts "===== Started watching file changes ====="
+      puts <<~_
+        Ruby Live Reload running with #{settings.threads} threads!
+        Watching #{settings.directory}
+
+        http://#{settings.bind}:#{settings.port}
+
+        Ctrl-c to stop
+      _
+
 
       @filewatcher_thread = Thread.new do
         @filewatcher = Filewatcher.new File.join(settings.directory, "**", "*.*")
@@ -191,7 +199,8 @@ module RubyLiveReload
       bind: options.host,
       port: options.port,
       directory: options.directory,
-      proxy: options.proxy
+      proxy: options.proxy,
+      threads: 16,
     })
   end
 
