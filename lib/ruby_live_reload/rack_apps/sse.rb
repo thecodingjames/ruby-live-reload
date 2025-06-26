@@ -1,6 +1,6 @@
 module RubyLiveReload
   module RackApps
-    class SSE
+    class SSE < RackApp
 
       # https://blog.appsignal.com/2024/11/27/server-sent-events-and-websockets-in-rack-for-ruby.html
       def call(env)
