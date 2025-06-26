@@ -3,25 +3,26 @@ module RubyLiveReload
 
     private
 
-    attr_writer :host, :port, :directory, :proxy, :message
+    attr_writer :bind, :port, :directory, :threads, :proxy, :message
 
     def initialize
-      @host = "127.0.0.1"
+      @bind = "127.0.0.1"
       @port = 8080
       @directory = Dir.pwd
+      @threads = 16
       @proxy = nil
       @message = nil
     end
 
     public 
 
-    attr_reader :host, :port, :directory, :proxy, :message
+    attr_reader :bind, :port, :directory, :threads, :proxy, :message
 
     def self.parse(args)
 
       unless [String, Array].include? args.class 
         raise <<~ERROR.strip
-          Provide an array or a space-separated string of arguments: ["-p", 9090, "--host", "198.168.0.42"] or "-p 9090 --host 192.168.0.42"
+          Provide an array or a space-separated string of arguments: ["-p", 9090, "--bind", "198.168.0.42"] or "-p 9090 --bind 192.168.0.42"
         ERROR
       end
 
@@ -29,16 +30,20 @@ module RubyLiveReload
 
       instance = Options.new
 
-      OptionParser.new do |options|
+      parser = OptionParser.new do |options|
         options.banner = "Usage: rlr [instance]"
         options.release = VERSION
 
-        options.on("-b HOST", "--bind HOST", "Hostname") do |host|
-          instance.send :host=, host
+        options.on("-b HOST", "--bind HOST", "Hostname") do |bind|
+          instance.send :bind=, bind
         end
 
         options.on("-p PORT", "--port PORT", "Port") do |port|
           instance.send :port=, port
+        end
+
+        options.on("-t THREADS", "--threads THREADS", "Threads") do |threads|
+          instance.send :threads=, threads
         end
 
         options.on("--proxy URL", "Url of the proxied app") do |proxy|
@@ -56,7 +61,17 @@ module RubyLiveReload
           instance.send :message=, VERSION
         end
 
-      end.parse(args)
+      end
+
+      begin
+        parser.parse(args)
+      rescue OptionParser::ParseError => e
+        instance.send :message=, <<~_
+          #{e.message}
+
+          #{parser.to_s}
+        _
+      end
 
       return instance
     end

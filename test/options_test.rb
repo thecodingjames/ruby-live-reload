@@ -1,9 +1,9 @@
 class OptionsTest < Minitest::Test
 
   def test_version
-    options = Options.parse "-v"
+    options = RubyLiveReload::Options.parse "-v"
 
-    assert_equal options.message, VERSION
+    assert_equal options.message, RubyLiveReload::VERSION
   end
 
 end

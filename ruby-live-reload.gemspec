@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "minitest-reporters", "~> 1.7.1"
   s.add_runtime_dependency "sinatra", "~> 4.1.0"
   s.add_runtime_dependency "puma", "~> 6.5.0"
+  s.add_runtime_dependency "rack", "~> 3.1.16"
   s.add_runtime_dependency "rackup", "~> 2.2.0"
   s.add_runtime_dependency "filewatcher", "~> 2.0.0"
   s.add_runtime_dependency "faraday", "~> 2.12.0"

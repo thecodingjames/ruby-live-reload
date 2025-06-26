@@ -3,12 +3,8 @@ require "minitest/reporters"
 
 Minitest::Reporters.use!
 
-requires = Dir.glob "lib/ruby_live_reload/**/*", base: Dir.pwd
+requires = Dir.glob "../lib/**/*.rb", base: __dir__
 
 requires.each do |lib|
-  require lib
-end
-
-class Minitest::Test
-  include RubyLiveReload
+  require_relative lib
 end

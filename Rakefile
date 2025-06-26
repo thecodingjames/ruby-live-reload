@@ -4,7 +4,7 @@ require "minitest/test_task"
 $LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
 
 # Call a task with the standard CLI args
-# Ex: rake run -- -p 9090 -h 0.0.0.0
+# Ex: rake run -- -p 9090 -b 0.0.0.0
 ARGV.slice!(0, 2)
 
 Minitest::TestTask.create do |t|
