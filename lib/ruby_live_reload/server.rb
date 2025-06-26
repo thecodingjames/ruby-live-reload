@@ -44,14 +44,14 @@ module RubyLiveReload
       app = Rack::Builder.new do
 
         map "/favicon.ico" do
-          run RackApps::Favicon.new
+          run RackApps::Favicon.new(options)
         end
 
         map "/ruby-live-reload-sse" do
-          run RackApps::SSE.new
+          run RackApps::SSE.new(options)
         end
 
-        run RackApps::Main.new
+        run RackApps::Main.new(options)
       end
 
       Rack::Handler::Puma.run(

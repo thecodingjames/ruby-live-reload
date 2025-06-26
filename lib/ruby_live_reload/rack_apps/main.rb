@@ -1,11 +1,16 @@
 module RubyLiveReload
   module RackApps
 
-    class Main < RackApp
+    class Main < RackApps::Base
       def call(env)
 
+        request = Rack::Request.new(env)
+      #   req.post?
+      #   req.params["data"]
+        p env['rack.routing_args']
+        p request.params
         splat = File.join params["splat"]
-        path = File.join(settings.directory, splat)
+        path = File.join(@options.directory, splat)
         is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
 
         if File.directory?(path) && !path.end_with?("/")
@@ -17,11 +22,11 @@ module RubyLiveReload
           File.read path
         end
 
-        response = if settings.proxy
+        response = if @options.proxy
           # TODO Handle response other than HTML
           #      --wrap to enclose arbitrary text within HTML to allow snippet injection?
           #      What about arbitrary files? Images, CSS, etc?
-          Faraday.get(File.join(settings.proxy + splat)).body
+          Faraday.get(File.join(@options.proxy + splat)).body
         elsif File.file? path
           File.read path
         elsif File.file? File.join(path, "index.html")
