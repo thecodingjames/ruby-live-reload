@@ -12,7 +12,8 @@ module RubyLiveReload
 
   class Server < Sinatra::Base
 
-    set :server_settings, { max_threads: 256, quiet: true }
+    set :quiet, true
+    set :server_settings, { max_threads: 256, Silent: true }
 
     set :clients, Set.new
     
