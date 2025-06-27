@@ -1,16 +1,12 @@
 module RubyLiveReload
   module RackApps
 
-    class Main < RackApps::Base
+    class Main
       def call(env)
-
         request = Rack::Request.new(env)
-      #   req.post?
-      #   req.params["data"]
-        p env['rack.routing_args']
-        p request.params
-        splat = File.join params["splat"]
-        path = File.join(@options.directory, splat)
+
+        splat = request.path #File.join params["splat"]
+        path = File.join(Server.options.directory, splat)
         is_asset = !([".html", ".htm", ".xhtml"].include? File.extname(path))
 
         if File.directory?(path) && !path.end_with?("/")
@@ -22,11 +18,11 @@ module RubyLiveReload
           File.read path
         end
 
-        response = if @options.proxy
+        response = if Server.options.proxy
           # TODO Handle response other than HTML
           #      --wrap to enclose arbitrary text within HTML to allow snippet injection?
           #      What about arbitrary files? Images, CSS, etc?
-          Faraday.get(File.join(@options.proxy + splat)).body
+          Faraday.get(File.join(Server.options.proxy + splat)).body
         elsif File.file? path
           File.read path
         elsif File.file? File.join(path, "index.html")
@@ -61,9 +57,7 @@ module RubyLiveReload
             </html>
           LISTING
         elsif !response
-          status 404
-
-          <<-NOT_FOUND
+          not_found = <<-NOT_FOUND
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -77,15 +71,27 @@ module RubyLiveReload
             </body>
             </html>
           NOT_FOUND
+
+          return [404, {"content-type" => "text/html"}, [not_found]]
         end
 
         client_js = <<-JS
           <script>
               const source = new EventSource('/ruby-live-reload-sse')
 
-              source.onmessage = (m) => {
+              source.addEventListener('changes', () => {
                 location.reload()
-              }
+              })
+
+              /*
+              //
+              // Server sends a heartbeat event, to handle connection lifecycle on the back-end,
+              // unused on the client(yet...?)
+              //
+              source.addEventListener('heartbeat', () => {
+                console.log('hb')
+              })
+              */
 
               source.onerror = (m) => {
                 console.group('Ruby Live Reload')

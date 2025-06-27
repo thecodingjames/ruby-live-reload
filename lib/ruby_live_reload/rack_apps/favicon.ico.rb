@@ -2,9 +2,10 @@ module RubyLiveReload
   module RackApps
 
     # Avoid 404 if favicon is missing
-    class Favicon < RackApps::Base
+    class Favicon
 
       def call(env)
+        request = Rack::Request.new(env)
         # path = File.join(settings.directory, "favicon.ico")
 
         # if File.exist? path

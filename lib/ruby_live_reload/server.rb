@@ -1,66 +1,81 @@
 module RubyLiveReload
-  class Server
-    def self.run!(options)
-      puts <<~_
-        Ruby Live Reload running with #{options.threads} threads!
-        Watching #{options.directory}
+  module Server
 
-        http://#{options.bind}:#{options.port}
+    def self.options
+      @options
+    end
+
+    def self.clients
+      @clients
+    end
+
+    def self.run!(options)
+      @options = options
+      @clients = Set.new
+
+      puts <<~_
+        Ruby Live Reload running with #{@options.threads} threads!
+        Watching #{@options.directory}
+
+        http://#{@options.bind}:#{@options.port}
 
         Ctrl-c to stop
       _
 
-    # set :clients, Set.new
-    # 
-    # on_start do
-      # puts "===== Started watching file changes ====="
-# 
-      # @filewatcher_thread = Thread.new do
-        # @filewatcher = Filewatcher.new File.join(settings.directory, "**", "*.*")
-# 
-        # @filewatcher.watch do |changes| 
-          # settings.clients.each do |client|
-            # client << "data: " + changes.to_s + "\n\n"
-          # rescue 
-            # client.close
-            # settings.clients.delete client
-          # end
-        # end
-# 
-        # settings.clients.each do |client|
-          # client.close
-        # end
-# 
-        # rescue
-          # exit # Watcher thread crash
-      # end
-    # end
-# 
-    # on_stop do
-      # @filewatcher&.stop()
-      # @filewatcher_thread&.join
-    # end
+      #
+      # Filewatcher setup
+      #
+      filewatcher = nil
+      filewatcher_thread = Thread.new do
+        filewatcher = Filewatcher.new File.join(@options.directory, "**", "*.*")
+
+        filewatcher.watch do |changes| 
+          @clients.each do |client|
+            p "sent to " + client.to_s
+            RackApps::SSE.changes client, changes
+          end
+        end
+      rescue Exception => e
+        p e
+        filewatcher.stop
+      end
+
+      #
+      # Rack setup
+      #
 
       app = Rack::Builder.new do
-
+         
         map "/favicon.ico" do
-          run RackApps::Favicon.new(options)
+          run RackApps::Favicon.new
         end
 
         map "/ruby-live-reload-sse" do
-          run RackApps::SSE.new(options)
+          run RackApps::SSE.new
         end
 
-        run RackApps::Main.new(options)
+        run RackApps::Main.new
       end
 
       Rack::Handler::Puma.run(
         app, 
-        Silent: false, 
-        Host: options.bind,
-        Port: options.port,
-        max_threads: options.threads
+        Silent: true, 
+        Host: @options.bind,
+        Port: @options.port,
+        max_threads: @options.threads
       )
+
+      #
+      # Clean up
+      #
+      filewatcher&.stop()
+      filewatcher_thread&.join
+
+      @clients.each do |client|
+        client.close
+      end
+
+      puts "Stopped!"
     end
 
   end

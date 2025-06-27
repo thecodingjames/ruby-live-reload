@@ -3,7 +3,7 @@ module RubyLiveReload
 
     private
 
-    attr_writer :bind, :port, :directory, :threads, :proxy, :message
+    attr_writer :bind, :port, :directory, :threads, :proxy, :message, :verbose
 
     def initialize
       @bind = "127.0.0.1"
@@ -12,11 +12,12 @@ module RubyLiveReload
       @threads = 16
       @proxy = nil
       @message = nil
+      @verbose = false
     end
 
     public 
 
-    attr_reader :bind, :port, :directory, :threads, :proxy, :message
+    attr_reader :bind, :port, :directory, :threads, :proxy, :message, :verbose
 
     def self.parse(args)
 
@@ -59,6 +60,10 @@ module RubyLiveReload
 
         options.on("-v", "--version", "Version") do
           instance.send :message=, VERSION
+        end
+
+        options.on("--verbose", "Show verbose output to console") do
+          instance.send :verbose=, true
         end
 
       end
