@@ -46,7 +46,12 @@ module RubyLiveReload
         end
 
         options.on("-d PATH", "--directory PATH", "Path") do |path|
-          directory = File.join(Dir.pwd, path) unless path.start_with?("/")
+          directory = if path.start_with?("/")
+            path
+          else
+            File.join(Dir.pwd, path)
+          end
+
           # TODO Validate path is a directory
 
           instance.send :directory=, directory

@@ -66,7 +66,7 @@ module RubyLiveReload
         sleep 1
 
         # Heartbeat will detect disconnected client and free the thread
-        client << "event: heartbeat\n"
+        client << "event: heartbeat\n\n"
       rescue
         settings.clients.delete client
         client.close
