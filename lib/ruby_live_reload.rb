@@ -180,7 +180,7 @@ module RubyLiveReload
         </script>
       JS
 
-      if response.sub!(/<body>/, "<body>#{client_js}")
+      if response.sub!(/<body(.*)>/, "<body#{$+}>#{client_js}")
         content_type :html
       end
 
