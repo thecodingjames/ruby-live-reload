@@ -159,7 +159,7 @@ module RubyLiveReload
       end
 
       client_js = <<-JS
-        <script>
+        <script defer>
             const source = new EventSource('/ruby-live-reload-sse')
 
             source.onmessage = (m) => {
@@ -180,7 +180,12 @@ module RubyLiveReload
         </script>
       JS
 
-      if response.sub!(/<body(.*)>/, "<body#{$+}>#{client_js}")
+      head_inject = response.sub!(/<\/head>/, "#{client_js}</head>")
+      body_inject = unless head_inject
+        response.sub!(/<body(.*)>/, "<body#{$+}>#{client_js}")
+      end
+
+      if head_inject || body_inject
         content_type :html
       end
 
