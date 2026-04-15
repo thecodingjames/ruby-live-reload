@@ -1,3 +1,4 @@
+require "bundler/gem_tasks"
 require "minitest/test_task"
 
 # Use same context as gemspec
